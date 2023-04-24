@@ -1,0 +1,92 @@
+package com.gtappdevelopers.kotlingfgproject
+ 
+import android.os.Bundle
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.Request
+import com.android.volley.toolbox.JsonArrayRequest
+import com.android.volley.toolbox.Volley
+ 
+class MainActivity : AppCompatActivity() {
+ 
+    // on below line we are creating variables.
+    lateinit var courseRV: RecyclerView
+    lateinit var loadingPB: ProgressBar
+    lateinit var courseRVAdapter: CourseRVAdapter
+    lateinit var courseList: ArrayList<CourseRVModal>
+ 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+         
+        // on below line we are initializing
+        // our variable with their ids.
+        courseRV = findViewById(R.id.idRVCourses)
+        loadingPB = findViewById(R.id.idPBLoading)
+ 
+        // on below line we are initializing our list
+        courseList = ArrayList()
+ 
+        // on below line we are initializing our adapter.
+        courseRVAdapter = CourseRVAdapter(courseList)
+ 
+        // on below line we are setting
+        // adapter to recycler view.
+        courseRV.adapter = courseRVAdapter
+ 
+        // on below line we are calling
+        // get data method to get data.
+        getData()
+ 
+    }
+ 
+    private fun getData() {
+        // on below line we are creating a variable for url
+        var url = "https://jsonkeeper.com/b/0RH6"
+ 
+        // on below line we are creating a
+        // variable for our request queue
+        val queue = Volley.newRequestQueue(this@MainActivity)
+ 
+        // on below line we are creating a request
+        // variable for making our json object request.
+        val request =
+            // as we are getting json object response and we are making a get request.
+            JsonArrayRequest(Request.Method.GET, url, null, { response ->
+                // this method is called when we get successful response from API.
+                loadingPB.visibility = View.GONE
+                try {
+                    for (i in 0 until response.length()) {
+                        // on below line we are extracting
+                        // data from each json object
+                        val respObj = response.getJSONObject(i)
+                        val lngName = respObj.getString("languageName")
+                        val lngImg = respObj.getString("languageImg")
+ 
+                        // on below line we are adding data to our list
+                        courseList.add(CourseRVModal(lngName, lngImg))
+ 
+                        // on below line we are notifying
+                        // our adapter that data has updated.
+                        courseRVAdapter.notifyDataSetChanged()
+                    }
+ 
+                  // on below line we
+                  // are handling exception
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+ 
+            }, { error ->
+                // in this case we are simply displaying a toast message.
+                Toast.makeText(this@MainActivity, "Fail to get response", Toast.LENGTH_SHORT)
+                    .show()
+            })
+        // at last we are adding our
+        // request to our queue.
+        queue.add(request)
+    }
+}
